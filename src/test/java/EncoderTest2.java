@@ -14,7 +14,7 @@ import org.mcmodule.silk.Native;
 
 public class EncoderTest2 {
 
-	private static final int SAMPLES_MS = 20 * 3;
+	private static final int SAMPLES_MS = 20;
 	
 	public static void main(String[] args) throws Throwable {
 		System.out.println("Silk version: " + Native.getVersion());
@@ -35,6 +35,8 @@ public class EncoderTest2 {
 		short[] samples = new short[sampleCount];
 		byte[] samplesByte = new byte[sampleCount * 2];
 		int len;
+		int encodedLength = 0, encodedLength2 = 0;
+		int samplesLength = 0, samplesLength2 = 0;
 		AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new AudioFormat(Encoding.PCM_SIGNED, 48000, 16, 1, 2, 48000, false), AudioSystem.getAudioInputStream(EncoderTest2.class.getResource("/Test.wav")));
 		SourceDataLine sourceDataLine = AudioSystem.getSourceDataLine(new AudioFormat(Encoding.PCM_SIGNED, 48000, 16, 1, 2, 48000, false));
 		sourceDataLine.open();
@@ -43,18 +45,28 @@ public class EncoderTest2 {
 			len = audioInputStream.read(samplesByte) / 2;
 			Arrays.fill(samples, (short) 0);
 			for (int i = 0; i < len; i++) {
-				samples[i] = (short) ((samplesByte[i << 1 + 0] & 0xFF) | ((samplesByte[(i << 1) + 1] & 0xFF) << 8));
+				samples[i] = (short) ((samplesByte[(i << 1) + 0] & 0xFF) | ((samplesByte[(i << 1) + 1] & 0xFF) << 8));
 			}
 			byte[] encodedSamples = encoder.encode(samples, encControl);
-			System.out.printf("Encoded data -> %s\n", Arrays.toString(encodedSamples));
+			encodedLength += encodedSamples.length;
+			encodedLength2 += encodedSamples.length;
+//			System.out.printf("Encoded data -> %s\n", Arrays.toString(encodedSamples));
 			short[] decodedSamples = decoder.decode(encodedSamples, decControl);
-			System.out.printf("Decoded samples (%d/%d) -> %s\n", decodedSamples.length, sampleCount, Arrays.toString(decodedSamples));
+//			System.out.printf("Decoded samples (%d/%d) -> %s\n", decodedSamples.length, sampleCount, Arrays.toString(decodedSamples));
 			for (int i = 0; i < decodedSamples.length; i++) {
-				samplesByte[i << 1 + 0] = (byte) (decodedSamples[i] & 0xFF);
+				samplesByte[(i << 1) + 0] = (byte) ( decodedSamples[i] & 0xFF);
 				samplesByte[(i << 1) + 1] = (byte) ((decodedSamples[i] >>> 8) & 0xFF);
 			}
 			sourceDataLine.write(samplesByte, 0, decodedSamples.length * 2);
+			samplesLength += decodedSamples.length;
+			samplesLength2 += decodedSamples.length;
+			if (samplesLength2 >= 48000) {
+				System.out.printf("Bitrate: %.2f kBps\n", (encodedLength2 * 8) / (samplesLength2 / 48000f) / 1000f);
+				encodedLength2 = 0;
+				samplesLength2 = 0;
+			}
 		} while (len > 0);
+		System.out.printf("Total encoded bytes: %d Average bitrate: %.2f kBps\n", encodedLength, (encodedLength * 8) / (samplesLength / 48000f) / 1000f);
 	}
 
 }

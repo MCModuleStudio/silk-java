@@ -22,10 +22,17 @@ public class Decoder extends Struct {
 	}
 	
 	public short[] decode(byte[] in, int off, int len, DecoderControl decControl) {
+		Util.rangeCheck(off, len, in.length);
 		return Native.decode(getMemory(), decControl.getMemory(), false, in, off, len);
 	}
 	
 	public short[] decode(byte[] in, int off, int len, DecoderControl decControl, boolean lostFlag) {
+		Util.rangeCheck(off, len, in.length);
 		return Native.decode(getMemory(), decControl.getMemory(), lostFlag, in, off, len);
+	}
+	
+	public static byte[] searchForLBRR(byte[] inData, int off, int len, int lostOffset) {
+		Util.rangeCheck(off, len, inData.length);
+		return Native.searchForLBRR(inData, off, len, lostOffset);
 	}
 }

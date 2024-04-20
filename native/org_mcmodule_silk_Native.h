@@ -71,6 +71,22 @@ JNIEXPORT void JNICALL Java_org_mcmodule_silk_Native_initDecoder
 JNIEXPORT jshortArray JNICALL Java_org_mcmodule_silk_Native_decode
   (JNIEnv *, jclass, jlong, jlong, jboolean, jbyteArray, jint, jint);
 
+/*
+ * Class:     org_mcmodule_silk_Native
+ * Method:    decodeRaw
+ * Signature: (JJZ[BII)[S
+ */
+JNIEXPORT jshortArray JNICALL Java_org_mcmodule_silk_Native_decodeRaw
+  (JNIEnv *, jclass, jlong, jlong, jboolean, jbyteArray, jint, jint);
+
+/*
+ * Class:     org_mcmodule_silk_Native
+ * Method:    searchForLBRR
+ * Signature: ([BIII)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_org_mcmodule_silk_Native_searchForLBRR
+  (JNIEnv *, jclass, jbyteArray, jint, jint, jint);
+
 #ifdef __cplusplus
 }
 #endif

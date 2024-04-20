@@ -51,6 +51,11 @@ public class Native {
 	static native short[] decode(long decState, long decControl, boolean lostFlag, byte[] inData, int off, int len);
 	
 	/**
+	 * Decode a frame
+	 * */
+	static native short[] decodeRaw(long decState, long decControl, boolean lostFlag, byte[] inData, int off, int len);
+	
+	/**
 	 * Find Low Bit Rate Redundancy (LBRR) information in a packet
 	 * */
 	static native byte[] searchForLBRR(byte[] inData, int off, int len, int lostOffset);

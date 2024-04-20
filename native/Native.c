@@ -45,7 +45,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_mcmodule_silk_Native_encode(JNIEnv *jniEnv
     SKP_SILK_SDK_EncControlStruct *encControl = (SKP_SILK_SDK_EncControlStruct *) encStatus;
     SKP_int16 length = len;
     SKP_int16 *samples = malloc(len * sizeof(SKP_int16));
-    SKP_uint8 *outData = malloc(len); // encControl->bitRate / 1000 * 5
+    SKP_uint8 *outData = malloc(len); // encControl->bitRate / 8000 * SILK_MAX_FRAMES_PER_PACKET
     (*jniEnv)->GetShortArrayRegion(jniEnv, samplesIn, off, len, samples);
     bool error = CheckError(jniEnv, SKP_Silk_SDK_Encode((void *) encState, encControl, samples, len, outData, &length));
     jbyteArray result = NULL;
@@ -73,7 +73,7 @@ JNIEXPORT void JNICALL Java_org_mcmodule_silk_Native_initDecoder(JNIEnv *jniEnv,
 JNIEXPORT jshortArray JNICALL Java_org_mcmodule_silk_Native_decode(JNIEnv *jniEnv, jclass class, jlong decState, jlong decControl, jboolean lostFlag, jbyteArray inData, jint off, jint len) {
     SKP_SILK_SDK_DecControlStruct *control = (SKP_SILK_SDK_DecControlStruct *) decControl;
     SKP_int16 samplesLen;
-    SKP_int16 *samples = malloc((control->API_sampleRate * 20) / 1000 * 10);
+    SKP_int16 *samples = malloc((control->API_sampleRate * 20) / 1000 * SILK_MAX_FRAMES_PER_PACKET * 2);
     SKP_uint8 *in = malloc(len);
     (*jniEnv)->GetByteArrayRegion(jniEnv, inData, off, len, in);
     int length = 0;
@@ -82,7 +82,7 @@ JNIEXPORT jshortArray JNICALL Java_org_mcmodule_silk_Native_decode(JNIEnv *jniEn
     do {
         error = CheckError(jniEnv, SKP_Silk_SDK_Decode((void *) decState, control, lostFlag, in, len, samples + length, &samplesLen));
         length += samplesLen;
-        if (++frames > 5) break;
+        if (++frames > SILK_MAX_FRAMES_PER_PACKET) break;
     } while(!error && control->moreInternalDecoderFrames);
     jshortArray result = NULL;
     if (!error) {
@@ -96,9 +96,28 @@ JNIEXPORT jshortArray JNICALL Java_org_mcmodule_silk_Native_decode(JNIEnv *jniEn
     return result;
 }
 
+JNIEXPORT jshortArray JNICALL Java_org_mcmodule_silk_Native_decodeRaw(JNIEnv *jniEnv, jclass class, jlong decState, jlong decControl, jboolean lostFlag, jbyteArray inData, jint off, jint len) {
+    SKP_SILK_SDK_DecControlStruct *control = (SKP_SILK_SDK_DecControlStruct *) decControl;
+    SKP_int16 samplesLen;
+    SKP_int16 *samples = malloc((control->API_sampleRate * 20) / 1000 * SILK_MAX_FRAMES_PER_PACKET);
+    SKP_uint8 *in = malloc(len);
+    (*jniEnv)->GetByteArrayRegion(jniEnv, inData, off, len, in);
+    bool error = CheckError(jniEnv, SKP_Silk_SDK_Decode((void *) decState, control, lostFlag, in, len, samples, &samplesLen));;
+    jshortArray result = NULL;
+    if (!error) {
+        result = (*jniEnv)->NewShortArray(jniEnv, samplesLen);
+        if (result != NULL) {
+            (*jniEnv)->SetShortArrayRegion(jniEnv, result, 0, samplesLen, samples);
+        }
+    }
+    free(in);
+    free(samples);
+    return result;
+}
+
 JNIEXPORT jbyteArray JNICALL Java_org_mcmodule_silk_Native_searchForLBRR(JNIEnv *jniEnv, jclass class, jbyteArray inData, jint off, jint len, jint lostOffset) {
     SKP_uint8 *in = malloc(len);
-    SKP_uint8 *LBRRData = malloc(1024 * 5);
+    SKP_uint8 *LBRRData = malloc(1024 * SILK_MAX_FRAMES_PER_PACKET);
     SKP_int16 nLBRRBytes;
     (*jniEnv)->GetByteArrayRegion(jniEnv, inData, off, len, in);
     SKP_Silk_SDK_search_for_LBRR(in, len, lostOffset, LBRRData, &nLBRRBytes);

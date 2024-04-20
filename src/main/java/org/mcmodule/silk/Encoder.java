@@ -24,6 +24,7 @@ public class Encoder extends Struct {
 	}
 	
 	public byte[] encode(short[] samples, int off, int len, EncoderControl encControl) {
+		Util.rangeCheck(off, len, samples.length);
 		return Native.encode(getMemory(), encControl.getMemory(), samples, off, len);
 	}
 
