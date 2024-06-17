@@ -48,15 +48,11 @@ public abstract class Struct implements Cloneable {
 	
 	@Override
 	public Object clone() throws CloneNotSupportedException {
-		try {
-			Struct struct = (Struct) UNSAFE.allocateInstance(this.getClass());
-			int structSize = getStructSize();
-			struct.memory = allocateMemory(structSize);
-			UNSAFE.copyMemory(this.memory, struct.memory, structSize);
-			return struct;
-		} catch (InstantiationException e) {
-			throw new CloneNotSupportedException();
-		}
+		Struct struct = (Struct) super.clone();
+		int structSize = getStructSize();
+		struct.memory = allocateMemory(structSize);
+		UNSAFE.copyMemory(this.memory, struct.memory, structSize);
+		return struct;
 	}
 	
 	static {

@@ -31,3 +31,5 @@ replay_pid*
 *.o
 *.dll
 *.exe
+*.bit
+*.slk

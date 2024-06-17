@@ -4,8 +4,7 @@ public class Decoder extends Struct {
 
 	public Decoder() {
 		super();
-		long memory = getMemory();
-		Native.initDecoder(memory);
+		reset();
 	}
 	
 	@Override
@@ -34,5 +33,10 @@ public class Decoder extends Struct {
 	public static byte[] searchForLBRR(byte[] inData, int off, int len, int lostOffset) {
 		Util.rangeCheck(off, len, inData.length);
 		return Native.searchForLBRR(inData, off, len, lostOffset);
+	}
+	
+	public void reset() {
+		long memory = getMemory();
+		Native.initDecoder(memory);
 	}
 }
