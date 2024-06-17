@@ -78,8 +78,8 @@ public class SilkWriter extends AudioFileWriter {
 		} while (bytesRead >= byteBuffer.length);
 		if (fileType != TENCENT_SILK) {
 			output.writeShort(-1);
+			bytesWritten += 2;
 		}
-		bytesWritten += 2;
 		return bytesWritten;
 	}
 
